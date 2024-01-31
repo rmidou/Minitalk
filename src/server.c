@@ -6,7 +6,7 @@
 /*   By: rmidou <rmidou@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/01 15:01:22 by rmidou            #+#    #+#             */
-/*   Updated: 2024/01/13 14:04:49 by rmidou           ###   ########.fr       */
+/*   Updated: 2024/01/31 15:16:32 by rmidou           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,25 +30,21 @@ void	sig_handler(int signum, siginfo_t *info, void *ucontent)
 	{
 		ft_putchar_fd(c, 1);
 		c = 0;
-		if (kill(info->si_pid, SIGUSR1) == -1)
-			exit_handler("Failed to send SIGUSR1 to client");
+		kill(info->si_pid, SIGUSR1);
 		return ;
 	}
-	if (kill(info->si_pid, SIGUSR2) == -1)
-		exit_handler("Failed to send SIGUSR2 to client");
+	kill(info->si_pid, SIGUSR2);
 }
 
 void	config_signals(void)
 {
-	struct sigaction	info;
+	struct sigaction	act;
 
-	ft_bzero(&info, sizeof(info));
-	info.sa_flags = SA_SIGINFO;
-	info.sa_sigaction = &sig_handler;
-	if (sigaction(SIGUSR1, &info, NULL) == -1)
-		exit_handler("Failed to change SIGUSR1's behavior");
-	if (sigaction(SIGUSR2, &info, NULL) == -1)
-		exit_handler("Failed to change SIGUSR2's behavior");
+	ft_bzero(&act, sizeof(act));
+	act.sa_flags = SA_SIGINFO;
+	act.sa_sigaction = &sig_handler;
+	sigaction(SIGUSR1, &act, NULL);
+	sigaction(SIGUSR2, &act, NULL);
 }
 
 int	main(void)
