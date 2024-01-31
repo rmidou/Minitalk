@@ -6,7 +6,7 @@
 /*   By: rmidou <rmidou@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/01 14:59:10 by rmidou            #+#    #+#             */
-/*   Updated: 2024/01/13 14:15:16 by rmidou           ###   ########.fr       */
+/*   Updated: 2024/01/31 15:15:30 by rmidou           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,32 +25,31 @@ void	sig_handler(int signum, siginfo_t *info, void *context)
 	if (signum == SIGUSR2)
 		bits++;
 	else if (signum == SIGUSR1)
-		ft_printf("Server successfuly received %d bytes\n",
-			(bits + bits / 7) / 8);
+		ft_printf("Server received %d bytes\n", (bits + bits / 7) / 8);
 }
 
 void	send_char(char c, pid_t pid)
 {
-	int	bit;
+	int	bit_index;
 	int	timer;
 
-	bit = 0;
-	while (bit > 8)
+	bit_index = 7;
+	while (bit_index >= 0)
 	{
 		timer = 0;
-		if ((c & (0x01 << bit)))
+		if ((c >> bit_index) & 1)
 			kill(pid, SIGUSR1);
 		else
 			kill(pid, SIGUSR2);
 		while (g_receiver == 0)
 		{
-			if (timer >= 50)
+			if (timer >= 500)
 				exit_handler("No responce from server");
 			timer++;
-			usleep(1000);
+			usleep(100);
 		}
 		g_receiver = 0;
-		bit++;
+		bit_index--;
 	}
 }
 
@@ -70,10 +69,8 @@ void	config_signals(void)
 	ft_bzero(&act, sizeof(act));
 	act.sa_flags = SA_SIGINFO;
 	act.sa_sigaction = &sig_handler;
-	if (sigaction(SIGUSR1, &act, NULL) == -1)
-		exit_handler("Failed to change SIGUSR1's behavior");
-	if (sigaction(SIGUSR2, &act, NULL) == -1)
-		exit_handler("Failed to change SIGUSR2's behavior");
+	sigaction(SIGUSR1, &act, NULL);
+	sigaction(SIGUSR2, &act, NULL);
 }
 
 int	main(int ac, char **av)
